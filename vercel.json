@@ -1,7 +1,8 @@
 {
   "installCommand": "npm install",
-  "buildCommand": "npm run build --workspace=client",
+  "buildCommand": "npm run build --workspace=client && rm -rf dist && cp -r client/dist dist",
   "outputDirectory": "dist",
+  "framework": null,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
