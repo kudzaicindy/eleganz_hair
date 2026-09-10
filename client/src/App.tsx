@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom'
-import { useViewportScale } from './hooks/useViewportScale'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
@@ -11,8 +10,6 @@ import Courses from './pages/Courses'
 import Admin from './pages/Admin'
 
 export default function App() {
-  useViewportScale()
-
   return (
     <Routes>
       <Route path="/" element={<Layout />}>

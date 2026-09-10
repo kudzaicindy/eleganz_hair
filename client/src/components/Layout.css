@@ -710,6 +710,30 @@ main {
     gap: 0.75rem;
   }
 
+  /* Solid header on mobile — avoids transparent/solid flicker while scrolling */
+  .header--home .header-bar,
+  .header--transparent .header-bar {
+    background: rgba(253, 251, 247, 0.98);
+    border-bottom: 1px solid rgba(196, 168, 130, 0.3);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .header--home .logo-text,
+  .header--transparent .logo-text {
+    color: var(--cream-900);
+  }
+
+  .header--home .menu-toggle span,
+  .header--transparent .menu-toggle span {
+    background: var(--cream-900);
+  }
+
+  .header--home .menu-toggle,
+  .header--transparent .menu-toggle {
+    border-color: var(--cream-400);
+  }
+
   .nav-desktop,
   .header-actions {
     display: none;
@@ -717,6 +741,12 @@ main {
 
   .menu-toggle {
     display: flex;
+  }
+
+  .nav-mobile-link {
+    font-size: 1.0625rem;
+    padding: 0.95rem 1rem;
+    min-height: 48px;
   }
 
   .logo-text {

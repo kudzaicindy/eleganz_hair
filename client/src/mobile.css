@@ -1,0 +1,53 @@
+/* Stable, readable mobile layout — no viewport scaling */
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --container-gutter: 1.15rem;
+    --header-height: 64px;
+  }
+
+  body {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  /* backdrop-filter flickers on many phones */
+  .header--solid .header-bar,
+  .auth-panel-overlay,
+  .auth-card--floating {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .layout--auth {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .layout--auth main {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 768px) {
+  .btn:not(.widget-submit) {
+    min-height: 48px;
+    font-size: 1rem;
+    padding: 0.8rem 1.25rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.75rem, 6vw, 2.15rem);
+  }
+
+  .text-lead,
+  .section-subtitle {
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+}

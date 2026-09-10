@@ -191,7 +191,6 @@ const trainingPlans: TrainingPlan[] = [
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState(0)
-  const [activeTestimonial, setActiveTestimonial] = useState(0)
   const [formPackage, setFormPackage] = useState(trainingPlans[0].defaultPackage)
   const [formCourse, setFormCourse] = useState(trainingPlans[0].defaultCourse)
   const [formLevel, setFormLevel] = useState(trainingPlans[0].defaultLevel)
@@ -204,10 +203,6 @@ export default function Home() {
     setFormCourse(current.defaultCourse)
     setFormLevel(current.defaultLevel)
   }, [activeTab])
-
-  const nextTestimonial = () => {
-    setActiveTestimonial((i) => (i + 1) % testimonials.length)
-  }
 
   return (
     <div className="home">
@@ -400,6 +395,9 @@ export default function Home() {
           <div className="section-intro section-intro--compact">
             <span className="text-eyebrow">Our Courses</span>
             <h2 className="section-title">Training That Pays for Itself</h2>
+            <p className="text-lead">
+              From beginner revamps to advanced customization — pick the path that matches your goals.
+            </p>
           </div>
           <div className="courses-grid">
             {courses.map((course) => (
@@ -429,6 +427,9 @@ export default function Home() {
           <div className="section-intro section-intro--compact">
             <span className="text-eyebrow">Real Results</span>
             <h2 className="section-title">See What Our Students Create</h2>
+            <p className="text-lead">
+              Real transformations from stylists who trained with Eleganz.
+            </p>
           </div>
           <div className="gallery-grid">
             {gallery.map((item) => (
@@ -453,21 +454,10 @@ export default function Home() {
               <span className="text-eyebrow testimonials-eyebrow">Student Stories</span>
               <h2>Trusted by Stylists Across Zimbabwe</h2>
             </div>
-            <button
-              type="button"
-              className="testimonial-next"
-              onClick={nextTestimonial}
-              aria-label="Next testimonial"
-            >
-              →
-            </button>
           </div>
           <div className="testimonials-track">
-            {testimonials.map((item, i) => (
-              <article
-                key={item.name}
-                className={`testimonial-card ${i === activeTestimonial ? 'active' : ''}`}
-              >
+            {testimonials.map((item) => (
+              <article key={item.name} className="testimonial-card">
                 <p className="testimonial-text">&ldquo;{item.text}&rdquo;</p>
                 <div className="testimonial-stars">
                   {'★'.repeat(item.rating)}
@@ -498,6 +488,18 @@ export default function Home() {
               <Link to="/courses" className="btn btn-primary">Browse Course Library</Link>
               <Link to="/packages" className="btn btn-secondary">See Plans &amp; Pricing</Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="home-section landing-cta">
+        <div className="container landing-cta-inner">
+          <span className="landing-cta-eyebrow">Start Today</span>
+          <h2>Ready to Transform Your Craft?</h2>
+          <p>Join stylists across Zimbabwe mastering wig revamp and customization.</p>
+          <div className="landing-cta-actions">
+            <Link to="/register" className="btn btn-primary">Join Now</Link>
+            <Link to="/packages" className="btn btn-secondary">View Plans</Link>
           </div>
         </div>
       </section>
