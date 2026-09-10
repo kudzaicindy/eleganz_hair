@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { images, videos } from '../data/images'
+import { images } from '../data/images'
 
 type AuthLayoutProps = {
   title: string
@@ -12,15 +12,10 @@ export default function AuthLayout({ title, subtitle, children, footer }: AuthLa
   return (
     <div className="auth-page auth-page--split">
       <div className="auth-visual">
-        <video
-          className="auth-visual-video"
-          src={videos.revamp}
-          poster="/hair.jpg"
-          autoPlay
-          muted
-          loop
-          playsInline
-          aria-label="Wig revamp training preview"
+        <img
+          className="auth-visual-img"
+          src={images.instructor}
+          alt="Wig revamp and hair styling"
         />
         <div className="auth-visual-overlay" aria-hidden="true" />
         <div className="auth-visual-content">
