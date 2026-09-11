@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchDashboard, markLessonComplete } from '../api/dashboard'
 import VideoPlayer from '../components/VideoPlayer'
@@ -24,9 +24,10 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [activeCourseId, setActiveCourseId] = useState<string | null>(null)
   const [activeLesson, setActiveLesson] = useState<{ course: Course; lesson: Lesson } | null>(null)
   const [completed, setCompleted] = useState<string[]>([])
+  const [expandedCourses, setExpandedCourses] = useState<string[]>([])
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const playerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -47,10 +48,10 @@ export default function Dashboard() {
         const courseList = dashboard.courses ?? []
         const continueLesson = findContinueLesson(courseList, done)
         if (continueLesson) {
-          setActiveCourseId(continueLesson.course.id)
           setActiveLesson(continueLesson)
+          setExpandedCourses([continueLesson.course.id])
         } else if (courseList[0]) {
-          setActiveCourseId(courseList[0].id)
+          setExpandedCourses([courseList[0].id])
         }
       })
       .catch((err: Error) => {
@@ -65,14 +66,16 @@ export default function Dashboard() {
     }
   }, [token, updateUser])
 
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [sidebarOpen])
+
   const courses = data?.courses ?? []
   const subscription = data?.subscription ?? user?.subscription ?? null
   const isActive = subscriptionIsActive(subscription)
-
-  const activeCourse = useMemo(
-    () => courses.find((c) => c.id === activeCourseId) ?? courses[0] ?? null,
-    [courses, activeCourseId],
-  )
 
   const totalLessons = courses.reduce((n, c) => n + (c.lessons?.length ?? 0), 0)
   const completedCount = completed.filter((id) =>
@@ -80,9 +83,16 @@ export default function Dashboard() {
   ).length
   const progressPct = totalLessons ? Math.round((completedCount / totalLessons) * 100) : 0
 
+  const toggleCourse = (courseId: string) => {
+    setExpandedCourses((prev) =>
+      prev.includes(courseId) ? prev.filter((id) => id !== courseId) : [...prev, courseId],
+    )
+  }
+
   const selectLesson = (course: Course, lesson: Lesson) => {
-    setActiveCourseId(course.id)
     setActiveLesson({ course, lesson })
+    setExpandedCourses((prev) => (prev.includes(course.id) ? prev : [...prev, course.id]))
+    setSidebarOpen(false)
     requestAnimationFrame(() => {
       playerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
@@ -117,6 +127,84 @@ export default function Dashboard() {
       </div>
     )
   }
+
+  const sidebar = (
+    <aside className={`dashboard-sidebar ${sidebarOpen ? 'dashboard-sidebar--open' : ''}`}>
+      <div className="dashboard-sidebar-head">
+        <h2>Course Library</h2>
+        <button
+          type="button"
+          className="dashboard-sidebar-close"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close course list"
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="dashboard-sidebar-courses">
+        {courses.map((course) => {
+          const isExpanded = expandedCourses.includes(course.id)
+          const done = course.lessons?.filter((l) => completed.includes(l.id)).length ?? 0
+          const total = course.lessons?.length ?? 0
+
+          return (
+            <div
+              key={course.id}
+              className={`dashboard-course-collapse ${isExpanded ? 'dashboard-course-collapse--open' : ''}`}
+            >
+              <button
+                type="button"
+                className="dashboard-course-collapse-trigger"
+                aria-expanded={isExpanded}
+                onClick={() => toggleCourse(course.id)}
+              >
+                {course.thumbnail && (
+                  <img src={course.thumbnail} alt="" className="dashboard-course-collapse-img" />
+                )}
+                <span className="dashboard-course-collapse-copy">
+                  <span className="dashboard-course-collapse-title">{course.title}</span>
+                  <span className="dashboard-course-collapse-meta">
+                    {done}/{total} lessons · {course.duration}
+                  </span>
+                </span>
+                <span className="dashboard-course-collapse-chevron" aria-hidden="true">
+                  {isExpanded ? '−' : '+'}
+                </span>
+              </button>
+
+              {isExpanded && (
+                <ul className="dashboard-lesson-list">
+                  {course.lessons?.map((lesson, index) => {
+                    const isDone = completed.includes(lesson.id)
+                    const isCurrent = activeLesson?.lesson.id === lesson.id
+
+                    return (
+                      <li key={lesson.id}>
+                        <button
+                          type="button"
+                          className={`dashboard-lesson-btn ${isCurrent ? 'dashboard-lesson-btn--active' : ''}`}
+                          onClick={() => selectLesson(course, lesson)}
+                        >
+                          <span className={`dashboard-lesson-num ${isDone ? 'dashboard-lesson-num--done' : ''}`}>
+                            {isDone ? '✓' : index + 1}
+                          </span>
+                          <span className="dashboard-lesson-copy">
+                            <span className="dashboard-lesson-title">{lesson.title}</span>
+                            <span className="dashboard-lesson-duration">{lesson.duration}</span>
+                          </span>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </aside>
+  )
 
   return (
     <div className="dashboard-page">
@@ -172,60 +260,23 @@ export default function Dashboard() {
               </button>
             )}
 
-            <div className="dashboard-panel card">
-              <div className="dashboard-panel-header">
-                <h2>Your Courses</h2>
-                <div className="dashboard-course-tabs" role="tablist" aria-label="Courses">
-                  {courses.map((course) => {
-                    const done = course.lessons?.filter((l) => completed.includes(l.id)).length ?? 0
-                    const total = course.lessons?.length ?? 0
-                    const isSelected = activeCourse?.id === course.id
-
-                    return (
-                      <button
-                        key={course.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={isSelected}
-                        className={`dashboard-course-tab ${isSelected ? 'active' : ''}`}
-                        onClick={() => {
-                          setActiveCourseId(course.id)
-                          const first = course.lessons?.[0]
-                          if (first) setActiveLesson({ course, lesson: first })
-                        }}
-                      >
-                        {course.thumbnail && (
-                          <img src={course.thumbnail} alt="" className="dashboard-course-tab-img" />
-                        )}
-                        <span className="dashboard-course-tab-text">{course.title}</span>
-                        <span className="dashboard-course-tab-count">{done}/{total}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {activeCourse && (
-                <div className="dashboard-course-banner">
-                  {activeCourse.thumbnail && (
-                    <img
-                      src={activeCourse.thumbnail}
-                      alt=""
-                      className="dashboard-course-banner-img"
-                    />
+            <div className="dashboard-layout">
+              <div className="dashboard-main">
+                <div className="dashboard-main-toolbar">
+                  <button
+                    type="button"
+                    className="dashboard-sidebar-toggle"
+                    onClick={() => setSidebarOpen(true)}
+                    aria-expanded={sidebarOpen}
+                  >
+                    Browse courses
+                  </button>
+                  {activeLesson && (
+                    <span className="dashboard-now-playing">{activeLesson.course.title}</span>
                   )}
-                  <div className="dashboard-course-banner-copy">
-                    <h3>{activeCourse.title}</h3>
-                    <p>{activeCourse.description}</p>
-                    <span className="dashboard-course-banner-meta">
-                      {activeCourse.lessonCount} lessons · {activeCourse.duration}
-                    </span>
-                  </div>
                 </div>
-              )}
 
-              <div className="dashboard-split">
-                <div className="dashboard-player-panel" ref={playerRef}>
+                <div className="dashboard-panel card dashboard-player-wrap" ref={playerRef}>
                   {activeLesson ? (
                     <>
                       <div className="dashboard-player-screen">
@@ -251,51 +302,30 @@ export default function Dashboard() {
                     </>
                   ) : (
                     <div className="dashboard-player-placeholder">
-                      <p>Select a lesson below to start watching</p>
+                      <p>Open the course sidebar and pick a lesson to start watching.</p>
+                      <button
+                        type="button"
+                        className="btn btn-secondary dashboard-sidebar-toggle-inline"
+                        onClick={() => setSidebarOpen(true)}
+                      >
+                        Browse courses
+                      </button>
                     </div>
                   )}
                 </div>
-
-                <aside className="dashboard-lessons">
-                  <h3 className="dashboard-lessons-heading">Lessons</h3>
-                  <ul className="dashboard-lesson-list">
-                    {activeCourse?.lessons?.map((lesson, index) => {
-                      const isDone = completed.includes(lesson.id)
-                      const isCurrent = activeLesson?.lesson.id === lesson.id
-
-                      return (
-                        <li key={lesson.id}>
-                          <button
-                            type="button"
-                            className={`dashboard-lesson-btn ${isCurrent ? 'dashboard-lesson-btn--active' : ''}`}
-                            onClick={() => activeCourse && selectLesson(activeCourse, lesson)}
-                          >
-                            {activeCourse.thumbnail ? (
-                              <img
-                                src={activeCourse.thumbnail}
-                                alt=""
-                                className="dashboard-lesson-thumb"
-                              />
-                            ) : (
-                              <span className={`dashboard-lesson-num ${isDone ? 'dashboard-lesson-num--done' : ''}`}>
-                                {isDone ? '✓' : index + 1}
-                              </span>
-                            )}
-                            <span className="dashboard-lesson-copy">
-                              <span className="dashboard-lesson-title">{lesson.title}</span>
-                              <span className="dashboard-lesson-duration">{lesson.duration}</span>
-                            </span>
-                            {isDone && activeCourse.thumbnail && (
-                              <span className="dashboard-lesson-done" aria-label="Completed">✓</span>
-                            )}
-                          </button>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </aside>
               </div>
+
+              {sidebar}
             </div>
+
+            {sidebarOpen && (
+              <button
+                type="button"
+                className="dashboard-sidebar-backdrop"
+                aria-label="Close course list"
+                onClick={() => setSidebarOpen(false)}
+              />
+            )}
           </>
         )}
       </div>
