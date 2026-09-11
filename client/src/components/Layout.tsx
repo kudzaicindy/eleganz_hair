@@ -43,7 +43,9 @@ export default function Layout() {
   const { user, signOut } = useAuth()
   const isHome = pathname === '/'
   const isAuthPage = pathname === '/login' || pathname === '/register'
-  const showFooter = !isAuthPage
+  const isDashboard = pathname === '/dashboard'
+  const showHeader = !isDashboard
+  const showFooter = !isAuthPage && !isDashboard
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -86,7 +88,8 @@ export default function Layout() {
   ].filter(Boolean).join(' ')
 
   return (
-    <div className={`layout ${isHome ? 'layout--home' : ''} ${isAuthPage ? 'layout--auth' : ''}`}>
+    <div className={`layout ${isHome ? 'layout--home' : ''} ${isAuthPage ? 'layout--auth' : ''} ${isDashboard ? 'layout--dashboard' : ''}`}>
+      {showHeader && (
       <header className={headerClass}>
         <div className="header-bar">
           <div className="header-inner">
@@ -254,8 +257,9 @@ export default function Layout() {
           </nav>
         </div>
       </header>
+      )}
 
-      {menuOpen && (
+      {showHeader && menuOpen && (
         <button type="button" className="nav-backdrop" aria-label="Close menu" onClick={() => setMenuOpen(false)} />
       )}
 

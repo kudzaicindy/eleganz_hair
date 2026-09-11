@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { fetchDashboard, markLessonComplete } from '../api/dashboard'
 import VideoPlayer from '../components/VideoPlayer'
 import { useAuth } from '../context/AuthContext'
@@ -20,7 +20,8 @@ function findContinueLesson(courses: Course[], completed: string[]) {
 }
 
 export default function Dashboard() {
-  const { user, token, updateUser } = useAuth()
+  const navigate = useNavigate()
+  const { user, token, updateUser, signOut } = useAuth()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -108,7 +109,13 @@ export default function Dashboard() {
     }
   }
 
+  const handleSignOut = () => {
+    signOut()
+    navigate('/')
+  }
+
   const continueLesson = findContinueLesson(courses, completed)
+  const firstName = user?.name?.split(' ')[0] ?? 'Stylist'
 
   if (loading) {
     return (
@@ -128,206 +135,226 @@ export default function Dashboard() {
     )
   }
 
-  const sidebar = (
-    <aside className={`dashboard-sidebar ${sidebarOpen ? 'dashboard-sidebar--open' : ''}`}>
-      <div className="dashboard-sidebar-head">
-        <h2>Course Library</h2>
-        <button
-          type="button"
-          className="dashboard-sidebar-close"
-          onClick={() => setSidebarOpen(false)}
-          aria-label="Close course list"
-        >
-          ×
-        </button>
-      </div>
-
-      <div className="dashboard-sidebar-courses">
-        {courses.map((course) => {
-          const isExpanded = expandedCourses.includes(course.id)
-          const done = course.lessons?.filter((l) => completed.includes(l.id)).length ?? 0
-          const total = course.lessons?.length ?? 0
-
-          return (
-            <div
-              key={course.id}
-              className={`dashboard-course-collapse ${isExpanded ? 'dashboard-course-collapse--open' : ''}`}
-            >
-              <button
-                type="button"
-                className="dashboard-course-collapse-trigger"
-                aria-expanded={isExpanded}
-                onClick={() => toggleCourse(course.id)}
-              >
-                {course.thumbnail && (
-                  <img src={course.thumbnail} alt="" className="dashboard-course-collapse-img" />
-                )}
-                <span className="dashboard-course-collapse-copy">
-                  <span className="dashboard-course-collapse-title">{course.title}</span>
-                  <span className="dashboard-course-collapse-meta">
-                    {done}/{total} lessons · {course.duration}
-                  </span>
-                </span>
-                <span className="dashboard-course-collapse-chevron" aria-hidden="true">
-                  {isExpanded ? '−' : '+'}
-                </span>
-              </button>
-
-              {isExpanded && (
-                <ul className="dashboard-lesson-list">
-                  {course.lessons?.map((lesson, index) => {
-                    const isDone = completed.includes(lesson.id)
-                    const isCurrent = activeLesson?.lesson.id === lesson.id
-
-                    return (
-                      <li key={lesson.id}>
-                        <button
-                          type="button"
-                          className={`dashboard-lesson-btn ${isCurrent ? 'dashboard-lesson-btn--active' : ''}`}
-                          onClick={() => selectLesson(course, lesson)}
-                        >
-                          <span className={`dashboard-lesson-num ${isDone ? 'dashboard-lesson-num--done' : ''}`}>
-                            {isDone ? '✓' : index + 1}
-                          </span>
-                          <span className="dashboard-lesson-copy">
-                            <span className="dashboard-lesson-title">{lesson.title}</span>
-                            <span className="dashboard-lesson-duration">{lesson.duration}</span>
-                          </span>
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </aside>
-  )
-
   return (
     <div className="dashboard-page">
-      <section className="dashboard-hero">
-        <div className="container dashboard-hero-inner">
-          <span className="dashboard-eyebrow">My Training</span>
-          <h1>Welcome back, {user?.name?.split(' ')[0] ?? 'Stylist'}</h1>
-          {isActive && totalLessons > 0 && (
-            <div className="dashboard-progress">
-              <div className="dashboard-progress-bar" aria-hidden="true">
-                <span style={{ width: `${progressPct}%` }} />
-              </div>
-              <p className="dashboard-progress-text">
-                {progressPct}% complete · {completedCount} of {totalLessons} lessons
-              </p>
-            </div>
-          )}
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="dashboard-sidebar-backdrop"
+          aria-label="Close menu"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'dashboard-sidebar--open' : ''}`}>
+        <div className="dashboard-sidebar-top">
+          <Link to="/" className="dashboard-sidebar-logo">
+            <span className="dashboard-sidebar-logo-mark">E</span>
+            <span>Eleganz</span>
+          </Link>
+          <button
+            type="button"
+            className="dashboard-sidebar-close"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close menu"
+          >
+            ×
+          </button>
         </div>
-      </section>
 
-      <div className="container dashboard-body">
-        {!isActive ? (
-          <div className="dashboard-panel card dashboard-empty">
-            <h3>Subscription inactive</h3>
-            <p>Renew your plan to unlock your wig training videos.</p>
-            <Link to="/packages" className="btn btn-primary">View Packages</Link>
-          </div>
-        ) : courses.length === 0 ? (
-          <div className="dashboard-panel card dashboard-empty">
-            <h3>No courses available</h3>
-            <p>Upgrade your package to access training content.</p>
-            <Link to="/packages" className="btn btn-primary">Upgrade Plan</Link>
-          </div>
-        ) : (
-          <>
-            {continueLesson && (
-              <button
-                type="button"
-                className="dashboard-continue-btn"
-                onClick={() => selectLesson(continueLesson.course, continueLesson.lesson)}
-              >
-                {continueLesson.course.thumbnail && (
-                  <img
-                    src={continueLesson.course.thumbnail}
-                    alt=""
-                    className="dashboard-continue-thumb"
-                  />
-                )}
-                <span className="dashboard-continue-copy">
-                  <span className="dashboard-continue-label">Continue watching</span>
-                  <span className="dashboard-continue-title">{continueLesson.lesson.title}</span>
-                </span>
-              </button>
-            )}
+        <nav className="dashboard-sidebar-nav" aria-label="Training navigation">
+          <NavLink to="/dashboard" end className="dashboard-sidebar-link">
+            My Training
+          </NavLink>
+          <NavLink to="/account" className="dashboard-sidebar-link">
+            Account
+          </NavLink>
+          <Link to="/packages" className="dashboard-sidebar-link">
+            Packages
+          </Link>
+          <Link to="/" className="dashboard-sidebar-link">
+            Home
+          </Link>
+          <button type="button" className="dashboard-sidebar-link dashboard-sidebar-signout" onClick={handleSignOut}>
+            Sign Out
+          </button>
+        </nav>
 
-            <div className="dashboard-layout">
-              <div className="dashboard-main">
-                <div className="dashboard-main-toolbar">
-                  <button
-                    type="button"
-                    className="dashboard-sidebar-toggle"
-                    onClick={() => setSidebarOpen(true)}
-                    aria-expanded={sidebarOpen}
+        {isActive && courses.length > 0 && (
+          <div className="dashboard-sidebar-courses">
+            <p className="dashboard-courses-eyebrow">These are our courses</p>
+            <h2 className="dashboard-courses-heading">Explore</h2>
+
+            <div className="dashboard-course-list">
+              {courses.map((course) => {
+                const isExpanded = expandedCourses.includes(course.id)
+                const done = course.lessons?.filter((l) => completed.includes(l.id)).length ?? 0
+                const total = course.lessons?.length ?? 0
+
+                return (
+                  <div
+                    key={course.id}
+                    className={`dashboard-course-collapse ${isExpanded ? 'dashboard-course-collapse--open' : ''}`}
                   >
-                    Browse courses
-                  </button>
-                  {activeLesson && (
-                    <span className="dashboard-now-playing">{activeLesson.course.title}</span>
-                  )}
-                </div>
+                    <button
+                      type="button"
+                      className="dashboard-course-collapse-trigger"
+                      aria-expanded={isExpanded}
+                      onClick={() => toggleCourse(course.id)}
+                    >
+                      {course.thumbnail && (
+                        <img src={course.thumbnail} alt="" className="dashboard-course-collapse-img" />
+                      )}
+                      <span className="dashboard-course-collapse-copy">
+                        <span className="dashboard-course-collapse-title">{course.title}</span>
+                        <span className="dashboard-course-collapse-meta">
+                          {done}/{total} lessons · {course.duration}
+                        </span>
+                      </span>
+                      <span className="dashboard-course-collapse-chevron" aria-hidden="true">
+                        {isExpanded ? '−' : '+'}
+                      </span>
+                    </button>
 
-                <div className="dashboard-panel card dashboard-player-wrap" ref={playerRef}>
-                  {activeLesson ? (
-                    <>
-                      <div className="dashboard-player-screen">
-                        <VideoPlayer
-                          key={activeLesson.lesson.id}
-                          src={activeLesson.lesson.videoUrl ?? videos.revamp}
-                          title={activeLesson.lesson.title}
-                          className="dashboard-video"
-                        />
-                      </div>
-                      <div className="dashboard-player-info">
-                        <p className="dashboard-player-course">{activeLesson.course.title}</p>
-                        <h3>{activeLesson.lesson.title}</h3>
-                        <button
-                          type="button"
-                          className="btn btn-primary dashboard-complete-btn"
-                          onClick={() => markComplete(activeLesson.lesson.id)}
-                          disabled={completed.includes(activeLesson.lesson.id)}
-                        >
-                          {completed.includes(activeLesson.lesson.id) ? 'Lesson completed' : 'Mark as complete'}
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="dashboard-player-placeholder">
-                      <p>Open the course sidebar and pick a lesson to start watching.</p>
+                    {isExpanded && (
+                      <ul className="dashboard-lesson-list">
+                        {course.lessons?.map((lesson, index) => {
+                          const isDone = completed.includes(lesson.id)
+                          const isCurrent = activeLesson?.lesson.id === lesson.id
+
+                          return (
+                            <li key={lesson.id}>
+                              <button
+                                type="button"
+                                className={`dashboard-lesson-btn ${isCurrent ? 'dashboard-lesson-btn--active' : ''}`}
+                                onClick={() => selectLesson(course, lesson)}
+                              >
+                                <span className={`dashboard-lesson-num ${isDone ? 'dashboard-lesson-num--done' : ''}`}>
+                                  {isDone ? '✓' : index + 1}
+                                </span>
+                                <span className="dashboard-lesson-copy">
+                                  <span className="dashboard-lesson-title">{lesson.title}</span>
+                                  <span className="dashboard-lesson-duration">{lesson.duration}</span>
+                                </span>
+                              </button>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </aside>
+
+      <div className="dashboard-main">
+        <header className="dashboard-main-header">
+          <button
+            type="button"
+            className="dashboard-menu-toggle"
+            onClick={() => setSidebarOpen(true)}
+            aria-expanded={sidebarOpen}
+            aria-label="Open menu"
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+          <div className="dashboard-main-header-copy">
+            <span className="dashboard-main-eyebrow">My Training</span>
+            <h1>Welcome back, {firstName}</h1>
+          </div>
+        </header>
+
+        <div className="dashboard-main-body">
+          {!isActive ? (
+            <div className="dashboard-panel card dashboard-empty">
+              <h3>Subscription inactive</h3>
+              <p>Renew your plan to unlock your wig training videos.</p>
+              <Link to="/packages" className="btn btn-primary">View Packages</Link>
+            </div>
+          ) : courses.length === 0 ? (
+            <div className="dashboard-panel card dashboard-empty">
+              <h3>No courses available</h3>
+              <p>Upgrade your package to access training content.</p>
+              <Link to="/packages" className="btn btn-primary">Upgrade Plan</Link>
+            </div>
+          ) : (
+            <>
+              {totalLessons > 0 && (
+                <div className="dashboard-progress">
+                  <div className="dashboard-progress-bar" aria-hidden="true">
+                    <span style={{ width: `${progressPct}%` }} />
+                  </div>
+                  <p className="dashboard-progress-text">
+                    {progressPct}% complete · {completedCount} of {totalLessons} lessons
+                  </p>
+                </div>
+              )}
+
+              {continueLesson && (
+                <button
+                  type="button"
+                  className="dashboard-continue-btn"
+                  onClick={() => selectLesson(continueLesson.course, continueLesson.lesson)}
+                >
+                  {continueLesson.course.thumbnail && (
+                    <img
+                      src={continueLesson.course.thumbnail}
+                      alt=""
+                      className="dashboard-continue-thumb"
+                    />
+                  )}
+                  <span className="dashboard-continue-copy">
+                    <span className="dashboard-continue-label">Continue watching</span>
+                    <span className="dashboard-continue-title">{continueLesson.lesson.title}</span>
+                  </span>
+                </button>
+              )}
+
+              <div className="dashboard-panel card dashboard-player-wrap" ref={playerRef}>
+                {activeLesson ? (
+                  <>
+                    <div className="dashboard-player-screen">
+                      <VideoPlayer
+                        key={activeLesson.lesson.id}
+                        src={activeLesson.lesson.videoUrl ?? videos.revamp}
+                        title={activeLesson.lesson.title}
+                        className="dashboard-video"
+                      />
+                    </div>
+                    <div className="dashboard-player-info">
+                      <p className="dashboard-player-course">{activeLesson.course.title}</p>
+                      <h3>{activeLesson.lesson.title}</h3>
                       <button
                         type="button"
-                        className="btn btn-secondary dashboard-sidebar-toggle-inline"
-                        onClick={() => setSidebarOpen(true)}
+                        className="btn btn-primary dashboard-complete-btn"
+                        onClick={() => markComplete(activeLesson.lesson.id)}
+                        disabled={completed.includes(activeLesson.lesson.id)}
                       >
-                        Browse courses
+                        {completed.includes(activeLesson.lesson.id) ? 'Lesson completed' : 'Mark as complete'}
                       </button>
                     </div>
-                  )}
-                </div>
+                  </>
+                ) : (
+                  <div className="dashboard-player-placeholder">
+                    <p>Open the sidebar, expand a course under Explore, and pick a lesson.</p>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setSidebarOpen(true)}
+                    >
+                      Browse courses
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {sidebar}
-            </div>
-
-            {sidebarOpen && (
-              <button
-                type="button"
-                className="dashboard-sidebar-backdrop"
-                aria-label="Close course list"
-                onClick={() => setSidebarOpen(false)}
-              />
-            )}
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
