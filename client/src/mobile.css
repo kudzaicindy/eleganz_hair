@@ -32,6 +32,15 @@ html {
   .layout--auth main {
     overflow: visible;
   }
+
+  .dashboard-page {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  .dashboard-page .container {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 768px) {

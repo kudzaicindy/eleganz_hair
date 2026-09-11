@@ -75,7 +75,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="dashboard-loading">
+      <div className="dashboard-page dashboard-loading">
         <p>Loading your dashboard…</p>
       </div>
     )
@@ -83,7 +83,7 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="dashboard-loading">
+      <div className="dashboard-page dashboard-loading">
         <p>{error}</p>
         <Link to="/login" className="btn btn-primary">Sign in again</Link>
       </div>
@@ -91,7 +91,7 @@ export default function Dashboard() {
   }
 
   return (
-    <>
+    <div className="dashboard-page">
       <div className="dashboard-hero">
         <div className="container dashboard-hero-inner">
           <div>
@@ -245,6 +245,6 @@ export default function Dashboard() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }
