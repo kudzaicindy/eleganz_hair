@@ -54,8 +54,6 @@ export default function Layout() {
 
   const accountItems = user
     ? [
-        { to: '/dashboard', label: 'My Training', description: 'Video lessons & progress' },
-        { to: '/account', label: 'Account & Plan', description: 'Subscription & billing' },
         { to: '/packages', label: 'Upgrade Plan', description: 'Change your package' },
         { label: 'Sign Out', onClick: handleSignOut, danger: true },
       ]
@@ -128,6 +126,30 @@ export default function Layout() {
                     Pricing
                   </NavLink>
                 </li>
+                {user && (
+                  <>
+                    <li>
+                      <NavLink
+                        to="/dashboard"
+                        className={({ isActive }) =>
+                          `nav-link ${isActive ? 'nav-link--active' : ''}`
+                        }
+                      >
+                        Training
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/account"
+                        className={({ isActive }) =>
+                          `nav-link ${isActive ? 'nav-link--active' : ''}`
+                        }
+                      >
+                        Account
+                      </NavLink>
+                    </li>
+                  </>
+                )}
               </ul>
             </nav>
 
@@ -136,7 +158,7 @@ export default function Layout() {
                 <NavDropdown
                   label="Account"
                   variant="account"
-                  matchPaths={['/dashboard', '/account']}
+                  matchPaths={['/account']}
                   items={accountItems}
                   menuHeader={
                     <>
@@ -194,16 +216,28 @@ export default function Layout() {
             </NavLink>
             <Link to="/packages" className="nav-mobile-link">Packages</Link>
             <Link to="/courses" className="nav-mobile-link">Courses</Link>
+            {user && (
+              <>
+                <NavLink
+                  to="/dashboard"
+                  className={({ isActive }) => `nav-mobile-link ${isActive ? 'nav-mobile-link--active' : ''}`}
+                >
+                  Training
+                </NavLink>
+                <NavLink
+                  to="/account"
+                  className={({ isActive }) => `nav-mobile-link ${isActive ? 'nav-mobile-link--active' : ''}`}
+                >
+                  Account
+                </NavLink>
+              </>
+            )}
             <div className="nav-mobile-divider" />
 
             {user ? (
-              <>
-                <Link to="/dashboard" className="nav-mobile-link">My Training</Link>
-                <Link to="/account" className="nav-mobile-link">Account &amp; Plan</Link>
-                <button type="button" className="nav-mobile-link nav-mobile-signout" onClick={handleSignOut}>
-                  Sign Out
-                </button>
-              </>
+              <button type="button" className="nav-mobile-link nav-mobile-signout" onClick={handleSignOut}>
+                Sign Out
+              </button>
             ) : (
               <>
                 <span className="nav-mobile-group-label">Access</span>

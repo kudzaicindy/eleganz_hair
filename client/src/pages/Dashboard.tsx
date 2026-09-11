@@ -120,43 +120,39 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-page">
-      <header className="dashboard-toolbar">
-        <div className="container dashboard-toolbar-inner">
-          <div className="dashboard-toolbar-main">
-            <p className="dashboard-greeting">Hi, {user?.name?.split(' ')[0] ?? 'Stylist'}</p>
-            {isActive && totalLessons > 0 && (
-              <span className="dashboard-stat-pill">{progressPct}% · {completedCount}/{totalLessons}</span>
-            )}
-          </div>
-          <Link to="/account" className="dashboard-toolbar-account" aria-label="Account and plan">
-            Account
-          </Link>
+      <section className="dashboard-hero">
+        <div className="container dashboard-hero-inner">
+          <span className="dashboard-eyebrow">My Training</span>
+          <h1>Welcome back, {user?.name?.split(' ')[0] ?? 'Stylist'}</h1>
+          {isActive && totalLessons > 0 && (
+            <div className="dashboard-progress">
+              <div className="dashboard-progress-bar" aria-hidden="true">
+                <span style={{ width: `${progressPct}%` }} />
+              </div>
+              <p className="dashboard-progress-text">
+                {progressPct}% complete · {completedCount} of {totalLessons} lessons
+              </p>
+            </div>
+          )}
         </div>
-      </header>
+      </section>
 
-      {!isActive ? (
-        <div className="container dashboard-empty-wrap">
-          <div className="dashboard-empty card">
+      <div className="container dashboard-body">
+        {!isActive ? (
+          <div className="dashboard-panel card dashboard-empty">
             <h3>Subscription inactive</h3>
             <p>Renew your plan to unlock your wig training videos.</p>
-            <div className="dashboard-empty-actions">
-              <Link to="/packages" className="btn btn-primary">View Packages</Link>
-              <Link to="/account" className="btn btn-secondary">Account &amp; Plan</Link>
-            </div>
+            <Link to="/packages" className="btn btn-primary">View Packages</Link>
           </div>
-        </div>
-      ) : courses.length === 0 ? (
-        <div className="container dashboard-empty-wrap">
-          <div className="dashboard-empty card">
+        ) : courses.length === 0 ? (
+          <div className="dashboard-panel card dashboard-empty">
             <h3>No courses available</h3>
             <p>Upgrade your package to access training content.</p>
             <Link to="/packages" className="btn btn-primary">Upgrade Plan</Link>
           </div>
-        </div>
-      ) : (
-        <>
-          {continueLesson && (
-            <div className="container dashboard-continue-wrap">
+        ) : (
+          <>
+            {continueLesson && (
               <button
                 type="button"
                 className="dashboard-continue-btn"
@@ -165,102 +161,102 @@ export default function Dashboard() {
                 <span className="dashboard-continue-label">Continue watching</span>
                 <span className="dashboard-continue-title">{continueLesson.lesson.title}</span>
               </button>
-            </div>
-          )}
+            )}
 
-          <div className="container dashboard-course-tabs-wrap">
-            <div className="dashboard-course-tabs" role="tablist" aria-label="Courses">
-              {courses.map((course) => {
-                const done = course.lessons?.filter((l) => completed.includes(l.id)).length ?? 0
-                const total = course.lessons?.length ?? 0
-                const isSelected = activeCourse?.id === course.id
+            <div className="dashboard-panel card">
+              <div className="dashboard-panel-header">
+                <h2>Your Courses</h2>
+                <div className="dashboard-course-tabs" role="tablist" aria-label="Courses">
+                  {courses.map((course) => {
+                    const done = course.lessons?.filter((l) => completed.includes(l.id)).length ?? 0
+                    const total = course.lessons?.length ?? 0
+                    const isSelected = activeCourse?.id === course.id
 
-                return (
-                  <button
-                    key={course.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={isSelected}
-                    className={`dashboard-course-tab ${isSelected ? 'dashboard-course-tab--active' : ''}`}
-                    onClick={() => {
-                      setActiveCourseId(course.id)
-                      const first = course.lessons?.[0]
-                      if (first) setActiveLesson({ course, lesson: first })
-                    }}
-                  >
-                    <span className="dashboard-course-tab-title">{course.title}</span>
-                    <span className="dashboard-course-tab-meta">{done}/{total}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="container dashboard-split">
-            <aside className="dashboard-lessons">
-              <h2 className="dashboard-lessons-heading">
-                {activeCourse?.title ?? 'Lessons'}
-              </h2>
-              <ul className="dashboard-lesson-list">
-                {activeCourse?.lessons?.map((lesson, index) => {
-                  const isDone = completed.includes(lesson.id)
-                  const isCurrent = activeLesson?.lesson.id === lesson.id
-
-                  return (
-                    <li key={lesson.id}>
+                    return (
                       <button
+                        key={course.id}
                         type="button"
-                        className={`dashboard-lesson-btn ${isCurrent ? 'dashboard-lesson-btn--active' : ''}`}
-                        onClick={() => activeCourse && selectLesson(activeCourse, lesson)}
+                        role="tab"
+                        aria-selected={isSelected}
+                        className={`dashboard-course-tab ${isSelected ? 'active' : ''}`}
+                        onClick={() => {
+                          setActiveCourseId(course.id)
+                          const first = course.lessons?.[0]
+                          if (first) setActiveLesson({ course, lesson: first })
+                        }}
                       >
-                        <span className={`dashboard-lesson-num ${isDone ? 'dashboard-lesson-num--done' : ''}`}>
-                          {isDone ? '✓' : index + 1}
-                        </span>
-                        <span className="dashboard-lesson-copy">
-                          <span className="dashboard-lesson-title">{lesson.title}</span>
-                          <span className="dashboard-lesson-duration">{lesson.duration}</span>
-                        </span>
-                        {isCurrent && <span className="dashboard-lesson-now">Now playing</span>}
+                        {course.title}
+                        <span className="dashboard-course-tab-count">{done}/{total}</span>
                       </button>
-                    </li>
-                  )
-                })}
-              </ul>
-            </aside>
-
-            <div className="dashboard-player-panel" ref={playerRef}>
-              {activeLesson ? (
-                <>
-                  <div className="dashboard-player-screen">
-                    <VideoPlayer
-                      key={activeLesson.lesson.id}
-                      src={activeLesson.lesson.videoUrl ?? videos.revamp}
-                      title={activeLesson.lesson.title}
-                      className="dashboard-video"
-                    />
-                  </div>
-                  <div className="dashboard-player-info">
-                    <p className="dashboard-player-course">{activeLesson.course.title}</p>
-                    <h3>{activeLesson.lesson.title}</h3>
-                    <button
-                      type="button"
-                      className="btn btn-primary dashboard-complete-btn"
-                      onClick={() => markComplete(activeLesson.lesson.id)}
-                      disabled={completed.includes(activeLesson.lesson.id)}
-                    >
-                      {completed.includes(activeLesson.lesson.id) ? 'Lesson completed' : 'Mark as complete'}
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="dashboard-player-placeholder card">
-                  <p>Select a lesson to start watching</p>
+                    )
+                  })}
                 </div>
-              )}
+              </div>
+
+              <div className="dashboard-split">
+                <div className="dashboard-player-panel" ref={playerRef}>
+                  {activeLesson ? (
+                    <>
+                      <div className="dashboard-player-screen">
+                        <VideoPlayer
+                          key={activeLesson.lesson.id}
+                          src={activeLesson.lesson.videoUrl ?? videos.revamp}
+                          title={activeLesson.lesson.title}
+                          className="dashboard-video"
+                        />
+                      </div>
+                      <div className="dashboard-player-info">
+                        <p className="dashboard-player-course">{activeLesson.course.title}</p>
+                        <h3>{activeLesson.lesson.title}</h3>
+                        <button
+                          type="button"
+                          className="btn btn-primary dashboard-complete-btn"
+                          onClick={() => markComplete(activeLesson.lesson.id)}
+                          disabled={completed.includes(activeLesson.lesson.id)}
+                        >
+                          {completed.includes(activeLesson.lesson.id) ? 'Lesson completed' : 'Mark as complete'}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="dashboard-player-placeholder">
+                      <p>Select a lesson below to start watching</p>
+                    </div>
+                  )}
+                </div>
+
+                <aside className="dashboard-lessons">
+                  <h3 className="dashboard-lessons-heading">Lessons</h3>
+                  <ul className="dashboard-lesson-list">
+                    {activeCourse?.lessons?.map((lesson, index) => {
+                      const isDone = completed.includes(lesson.id)
+                      const isCurrent = activeLesson?.lesson.id === lesson.id
+
+                      return (
+                        <li key={lesson.id}>
+                          <button
+                            type="button"
+                            className={`dashboard-lesson-btn ${isCurrent ? 'dashboard-lesson-btn--active' : ''}`}
+                            onClick={() => activeCourse && selectLesson(activeCourse, lesson)}
+                          >
+                            <span className={`dashboard-lesson-num ${isDone ? 'dashboard-lesson-num--done' : ''}`}>
+                              {isDone ? '✓' : index + 1}
+                            </span>
+                            <span className="dashboard-lesson-copy">
+                              <span className="dashboard-lesson-title">{lesson.title}</span>
+                              <span className="dashboard-lesson-duration">{lesson.duration}</span>
+                            </span>
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </aside>
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   )
 }
