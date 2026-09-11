@@ -17,6 +17,7 @@ html {
 
   /* backdrop-filter flickers on many phones */
   .header--solid .header-bar,
+  .dashboard-toolbar,
   .auth-panel-overlay,
   .auth-card--floating {
     backdrop-filter: none;
