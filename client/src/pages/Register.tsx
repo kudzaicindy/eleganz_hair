@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
 import { useAuth } from '../context/AuthContext'
 import type { User } from '../types'
+import { getApiErrorMessage, parseJsonResponse, type ApiErrorBody } from '../utils/apiError'
 import './Auth.css'
 
 export default function Register() {
@@ -31,14 +32,20 @@ export default function Register() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, packageId: 'premium' }),
       })
-      const data = await res.json()
+      type RegisterResponse = ApiErrorBody & { user?: User; token?: string }
+      const data = await parseJsonResponse<RegisterResponse>(res)
 
       if (!res.ok) {
-        setError(data.error ?? 'Registration failed. Please try again.')
+        setError(getApiErrorMessage(res.status, data, 'Registration failed. Please try again.'))
         return
       }
 
-      signIn(data.user as User, data.token as string)
+      if (!data.user || !data.token) {
+        setError('Registration failed. Please try again.')
+        return
+      }
+
+      signIn(data.user, data.token)
       navigate('/dashboard', { replace: true })
     } catch {
       setError('Could not connect to the server. Is the API running?')

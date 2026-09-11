@@ -41,14 +41,17 @@
 .header--solid .header-bar {
   background: rgba(253, 251, 247, 0.96);
   backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
   border-bottom: 1px solid rgba(196, 168, 130, 0.3);
   box-shadow: 0 8px 32px rgba(74, 61, 46, 0.07);
 }
 
 .header--transparent .header-bar {
-  background: linear-gradient(180deg, rgba(35, 28, 22, 0.72) 0%, rgba(35, 28, 22, 0.35) 100%);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(253, 251, 247, 0.08);
+  background: rgba(253, 251, 247, 0.1);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  border-bottom: 1px solid rgba(253, 251, 247, 0.2);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
 }
 
 .header--scrolled .header-bar {
@@ -710,28 +713,12 @@ main {
     gap: 0.75rem;
   }
 
-  /* Solid header on mobile — avoids transparent/solid flicker while scrolling */
-  .header--home .header-bar,
+  /* Frosted glass on home hero — keep blur, slightly stronger tint on small screens */
   .header--transparent .header-bar {
-    background: rgba(253, 251, 247, 0.98);
-    border-bottom: 1px solid rgba(196, 168, 130, 0.3);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  .header--home .logo-text,
-  .header--transparent .logo-text {
-    color: var(--cream-900);
-  }
-
-  .header--home .menu-toggle span,
-  .header--transparent .menu-toggle span {
-    background: var(--cream-900);
-  }
-
-  .header--home .menu-toggle,
-  .header--transparent .menu-toggle {
-    border-color: var(--cream-400);
+    background: rgba(35, 28, 22, 0.42);
+    backdrop-filter: blur(16px) saturate(1.35);
+    -webkit-backdrop-filter: blur(16px) saturate(1.35);
+    border-bottom: 1px solid rgba(253, 251, 247, 0.14);
   }
 
   .nav-desktop,

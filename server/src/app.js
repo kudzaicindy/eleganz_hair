@@ -28,7 +28,14 @@ export function createApp() {
       await connectDatabase()
       next()
     } catch (err) {
-      res.status(503).json({ error: 'Database unavailable', detail: err.message })
+      const detail = err.message ?? 'Unknown database error'
+      const missingConfig = detail.includes('is not configured')
+      res.status(503).json({
+        error: missingConfig
+          ? 'Server is missing database configuration'
+          : 'Database unavailable',
+        detail,
+      })
     }
   })
 

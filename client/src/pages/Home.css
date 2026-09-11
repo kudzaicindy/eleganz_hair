@@ -137,11 +137,11 @@
 .hero-widget {
   flex-shrink: 0;
   width: 100%;
-  max-width: min(760px, 100%);
+  max-width: min(620px, 100%);
   align-self: flex-start;
   background: var(--white);
-  border-radius: 12px;
-  box-shadow: 0 16px 48px rgba(35, 28, 22, 0.22);
+  border-radius: 10px;
+  box-shadow: 0 12px 36px rgba(35, 28, 22, 0.2);
   border: 1px solid rgba(253, 251, 247, 0.65);
   position: relative;
   z-index: 10;
@@ -163,16 +163,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.6rem;
-  padding: 0.55rem 1rem;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
   border-bottom: 1px solid var(--cream-300);
 }
 
 .widget-header h3 {
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--cream-900);
+  white-space: nowrap;
 }
 
 .widget-tabs {
@@ -181,8 +182,8 @@
 }
 
 .widget-tab {
-  padding: 0.25rem 0.6rem;
-  font-size: 0.68rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.64rem;
   font-weight: 500;
   color: var(--text-muted);
   background: var(--cream-100);
@@ -198,10 +199,10 @@
 
 .widget-plan-banner {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.55rem 1rem;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
   background: linear-gradient(90deg, var(--cream-100) 0%, var(--cream-50) 100%);
   border-bottom: 1px solid var(--cream-300);
   animation: widgetFadeIn 0.28s ease;
@@ -220,15 +221,19 @@
 
 .widget-plan-blurb {
   flex: 1;
-  font-size: 0.75rem;
-  line-height: 1.55;
+  font-size: 0.68rem;
+  line-height: 1.35;
   color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .widget-plan-price {
   flex-shrink: 0;
-  padding: 0.3rem 0.65rem;
-  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -239,15 +244,15 @@
 }
 
 .widget-body {
-  padding: 0.65rem 1rem 0.75rem;
+  padding: 0.5rem 0.85rem 0.6rem;
 }
 
 .widget-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.55rem;
+  gap: 0.4rem;
   align-items: end;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.4rem;
 }
 
 .widget-row:last-of-type {
@@ -257,12 +262,12 @@
 .widget-field {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.12rem;
   min-width: 0;
 }
 
 .widget-field label {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -272,11 +277,11 @@
 .widget-field input,
 .widget-field select {
   width: 100%;
-  padding: 0.38rem 0.6rem;
+  padding: 0.32rem 0.5rem;
   border: 1px solid var(--cream-300);
-  border-radius: 6px;
+  border-radius: 5px;
   background: var(--cream-50);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-primary);
 }
 
@@ -290,12 +295,12 @@
 .widget-actions {
   display: flex;
   justify-content: flex-end;
-  padding-top: 0.4rem;
+  padding-top: 0.25rem;
 }
 
 .widget-submit {
-  padding: 0.35rem 0.85rem;
-  font-size: 0.72rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.68rem;
   font-weight: 600;
   border-radius: 5px;
   white-space: nowrap;
@@ -973,66 +978,52 @@
   }
 
   .widget-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.45rem;
-    padding: 0.65rem 0.85rem 0.55rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.75rem;
     border-bottom: 1px solid var(--cream-300);
-    text-align: center;
+    text-align: left;
   }
 
   .widget-header h3 {
     display: block;
-    font-size: 0.875rem;
+    flex: 1 1 auto;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--cream-900);
+    white-space: normal;
   }
 
   .widget-tabs {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.35rem;
+    display: flex;
+    flex: 1 1 100%;
+    gap: 0.25rem;
     width: 100%;
   }
 
   .widget-tab {
-    min-height: 34px;
-    padding: 0.32rem 0.3rem;
-    font-size: 0.68rem;
+    flex: 1;
+    min-height: 28px;
+    padding: 0.22rem 0.2rem;
+    font-size: 0.62rem;
     text-align: center;
-    line-height: 1.2;
+    line-height: 1.15;
   }
 
   .widget-plan-banner {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.45rem 0.85rem;
-  }
-
-  .widget-plan-blurb {
-    font-size: 0.75rem;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-align: left;
-  }
-
-  .widget-plan-price {
-    font-size: 0.58rem;
-    padding: 0.22rem 0.45rem;
+    display: none;
   }
 
   .widget-body {
-    padding: 0.5rem 0.85rem 0.65rem;
+    padding: 0.4rem 0.75rem 0.5rem;
   }
 
   .hero-widget .widget-body .widget-row {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.4rem;
-    margin-bottom: 0.4rem;
+    gap: 0.32rem;
+    margin-bottom: 0.32rem;
     align-items: end;
   }
 
@@ -1042,37 +1033,37 @@
   }
 
   .widget-field {
-    gap: 0.22rem;
+    gap: 0.1rem;
     min-width: 0;
   }
 
   .widget-field label {
     display: block;
-    font-size: 0.62rem;
+    font-size: 0.55rem;
   }
 
   .widget-field input,
   .widget-field select {
     width: 100%;
-    padding: 0.42rem 0.55rem;
+    padding: 0.35rem 0.45rem;
     font-size: 16px;
-    border-radius: 8px;
-    min-height: 38px;
+    border-radius: 6px;
+    min-height: 34px;
   }
 
   .widget-actions {
     justify-content: stretch;
-    padding-top: 0.35rem;
+    padding-top: 0.2rem;
   }
 
   .hero-widget .widget-submit.btn {
     width: 100%;
     min-width: 0;
-    min-height: 40px;
-    padding: 0.5rem 0.85rem;
-    font-size: 0.875rem;
+    min-height: 36px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    border-radius: 8px;
+    border-radius: 6px;
   }
 
   .home-section {
@@ -1317,32 +1308,32 @@
   }
 
   .widget-header {
-    padding: 0.6rem 0.75rem 0.5rem;
+    padding: 0.4rem 0.65rem;
   }
 
   .widget-header h3 {
-    font-size: 0.8125rem;
+    font-size: 0.7rem;
   }
 
   .widget-tab {
-    font-size: 0.62rem;
-    min-height: 32px;
-    padding: 0.28rem 0.18rem;
+    font-size: 0.58rem;
+    min-height: 26px;
+    padding: 0.18rem 0.12rem;
   }
 
   .widget-body {
-    padding: 0.45rem 0.75rem 0.6rem;
+    padding: 0.35rem 0.65rem 0.45rem;
   }
 
   .hero-widget .widget-body .widget-row {
-    gap: 0.35rem;
-    margin-bottom: 0.35rem;
+    gap: 0.28rem;
+    margin-bottom: 0.28rem;
   }
 
   .widget-field input,
   .widget-field select {
-    min-height: 36px;
-    padding: 0.38rem 0.5rem;
+    min-height: 32px;
+    padding: 0.3rem 0.4rem;
   }
 
   .why-section {
