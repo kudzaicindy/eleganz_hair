@@ -158,8 +158,17 @@ export default function Dashboard() {
                 className="dashboard-continue-btn"
                 onClick={() => selectLesson(continueLesson.course, continueLesson.lesson)}
               >
-                <span className="dashboard-continue-label">Continue watching</span>
-                <span className="dashboard-continue-title">{continueLesson.lesson.title}</span>
+                {continueLesson.course.thumbnail && (
+                  <img
+                    src={continueLesson.course.thumbnail}
+                    alt=""
+                    className="dashboard-continue-thumb"
+                  />
+                )}
+                <span className="dashboard-continue-copy">
+                  <span className="dashboard-continue-label">Continue watching</span>
+                  <span className="dashboard-continue-title">{continueLesson.lesson.title}</span>
+                </span>
               </button>
             )}
 
@@ -185,13 +194,35 @@ export default function Dashboard() {
                           if (first) setActiveLesson({ course, lesson: first })
                         }}
                       >
-                        {course.title}
+                        {course.thumbnail && (
+                          <img src={course.thumbnail} alt="" className="dashboard-course-tab-img" />
+                        )}
+                        <span className="dashboard-course-tab-text">{course.title}</span>
                         <span className="dashboard-course-tab-count">{done}/{total}</span>
                       </button>
                     )
                   })}
                 </div>
               </div>
+
+              {activeCourse && (
+                <div className="dashboard-course-banner">
+                  {activeCourse.thumbnail && (
+                    <img
+                      src={activeCourse.thumbnail}
+                      alt=""
+                      className="dashboard-course-banner-img"
+                    />
+                  )}
+                  <div className="dashboard-course-banner-copy">
+                    <h3>{activeCourse.title}</h3>
+                    <p>{activeCourse.description}</p>
+                    <span className="dashboard-course-banner-meta">
+                      {activeCourse.lessonCount} lessons · {activeCourse.duration}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               <div className="dashboard-split">
                 <div className="dashboard-player-panel" ref={playerRef}>
@@ -239,13 +270,24 @@ export default function Dashboard() {
                             className={`dashboard-lesson-btn ${isCurrent ? 'dashboard-lesson-btn--active' : ''}`}
                             onClick={() => activeCourse && selectLesson(activeCourse, lesson)}
                           >
-                            <span className={`dashboard-lesson-num ${isDone ? 'dashboard-lesson-num--done' : ''}`}>
-                              {isDone ? '✓' : index + 1}
-                            </span>
+                            {activeCourse.thumbnail ? (
+                              <img
+                                src={activeCourse.thumbnail}
+                                alt=""
+                                className="dashboard-lesson-thumb"
+                              />
+                            ) : (
+                              <span className={`dashboard-lesson-num ${isDone ? 'dashboard-lesson-num--done' : ''}`}>
+                                {isDone ? '✓' : index + 1}
+                              </span>
+                            )}
                             <span className="dashboard-lesson-copy">
                               <span className="dashboard-lesson-title">{lesson.title}</span>
                               <span className="dashboard-lesson-duration">{lesson.duration}</span>
                             </span>
+                            {isDone && activeCourse.thumbnail && (
+                              <span className="dashboard-lesson-done" aria-label="Completed">✓</span>
+                            )}
                           </button>
                         </li>
                       )
