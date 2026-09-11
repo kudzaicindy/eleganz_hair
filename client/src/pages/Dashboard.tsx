@@ -19,6 +19,13 @@ function findContinueLesson(courses: Course[], completed: string[]) {
   return null
 }
 
+function courseProgress(course: Course, completed: string[]) {
+  const total = course.lessons?.length ?? 0
+  const done = course.lessons?.filter((l) => completed.includes(l.id)).length ?? 0
+  const pct = total ? Math.round((done / total) * 100) : 0
+  return { done, total, pct }
+}
+
 export default function Dashboard() {
   const navigate = useNavigate()
   const { user, token, updateUser, signOut } = useAuth()
@@ -116,6 +123,7 @@ export default function Dashboard() {
 
   const continueLesson = findContinueLesson(courses, completed)
   const firstName = user?.name?.split(' ')[0] ?? 'Stylist'
+  const userInitial = (user?.name?.[0] ?? user?.email?.[0] ?? 'E').toUpperCase()
 
   if (loading) {
     return (
@@ -179,75 +187,6 @@ export default function Dashboard() {
             Sign Out
           </button>
         </nav>
-
-        {isActive && courses.length > 0 && (
-          <div className="dashboard-sidebar-courses">
-            <p className="dashboard-courses-eyebrow">These are our courses</p>
-            <h2 className="dashboard-courses-heading">Explore</h2>
-
-            <div className="dashboard-course-list">
-              {courses.map((course) => {
-                const isExpanded = expandedCourses.includes(course.id)
-                const done = course.lessons?.filter((l) => completed.includes(l.id)).length ?? 0
-                const total = course.lessons?.length ?? 0
-
-                return (
-                  <div
-                    key={course.id}
-                    className={`dashboard-course-collapse ${isExpanded ? 'dashboard-course-collapse--open' : ''}`}
-                  >
-                    <button
-                      type="button"
-                      className="dashboard-course-collapse-trigger"
-                      aria-expanded={isExpanded}
-                      onClick={() => toggleCourse(course.id)}
-                    >
-                      {course.thumbnail && (
-                        <img src={course.thumbnail} alt="" className="dashboard-course-collapse-img" />
-                      )}
-                      <span className="dashboard-course-collapse-copy">
-                        <span className="dashboard-course-collapse-title">{course.title}</span>
-                        <span className="dashboard-course-collapse-meta">
-                          {done}/{total} lessons · {course.duration}
-                        </span>
-                      </span>
-                      <span className="dashboard-course-collapse-chevron" aria-hidden="true">
-                        {isExpanded ? '−' : '+'}
-                      </span>
-                    </button>
-
-                    {isExpanded && (
-                      <ul className="dashboard-lesson-list">
-                        {course.lessons?.map((lesson, index) => {
-                          const isDone = completed.includes(lesson.id)
-                          const isCurrent = activeLesson?.lesson.id === lesson.id
-
-                          return (
-                            <li key={lesson.id}>
-                              <button
-                                type="button"
-                                className={`dashboard-lesson-btn ${isCurrent ? 'dashboard-lesson-btn--active' : ''}`}
-                                onClick={() => selectLesson(course, lesson)}
-                              >
-                                <span className={`dashboard-lesson-num ${isDone ? 'dashboard-lesson-num--done' : ''}`}>
-                                  {isDone ? '✓' : index + 1}
-                                </span>
-                                <span className="dashboard-lesson-copy">
-                                  <span className="dashboard-lesson-title">{lesson.title}</span>
-                                  <span className="dashboard-lesson-duration">{lesson.duration}</span>
-                                </span>
-                              </button>
-                            </li>
-                          )
-                        })}
-                      </ul>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
       </aside>
 
       <div className="dashboard-main">
@@ -263,10 +202,13 @@ export default function Dashboard() {
             <span />
             <span />
           </button>
+
           <div className="dashboard-main-header-copy">
             <span className="dashboard-main-eyebrow">My Training</span>
             <h1>Welcome back, {firstName}</h1>
           </div>
+
+          <span className="dashboard-avatar" aria-hidden="true">{userInitial}</span>
         </header>
 
         <div className="dashboard-main-body">
@@ -284,14 +226,30 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
+              <div className="dashboard-stats">
+                <div className="dashboard-stat">
+                  <span className="dashboard-stat-value">{courses.length}</span>
+                  <span className="dashboard-stat-label">Courses</span>
+                </div>
+                <div className="dashboard-stat">
+                  <span className="dashboard-stat-value">{completedCount}</span>
+                  <span className="dashboard-stat-label">Lessons done</span>
+                </div>
+                <div className="dashboard-stat dashboard-stat--highlight">
+                  <span className="dashboard-stat-value">{progressPct}%</span>
+                  <span className="dashboard-stat-label">Progress</span>
+                </div>
+              </div>
+
               {totalLessons > 0 && (
-                <div className="dashboard-progress">
+                <div className="dashboard-progress-card">
+                  <div className="dashboard-progress-card-top">
+                    <span>Your journey</span>
+                    <strong>{completedCount}/{totalLessons} lessons</strong>
+                  </div>
                   <div className="dashboard-progress-bar" aria-hidden="true">
                     <span style={{ width: `${progressPct}%` }} />
                   </div>
-                  <p className="dashboard-progress-text">
-                    {progressPct}% complete · {completedCount} of {totalLessons} lessons
-                  </p>
                 </div>
               )}
 
@@ -302,15 +260,19 @@ export default function Dashboard() {
                   onClick={() => selectLesson(continueLesson.course, continueLesson.lesson)}
                 >
                   {continueLesson.course.thumbnail && (
-                    <img
-                      src={continueLesson.course.thumbnail}
-                      alt=""
-                      className="dashboard-continue-thumb"
-                    />
+                    <span className="dashboard-continue-media">
+                      <img
+                        src={continueLesson.course.thumbnail}
+                        alt=""
+                        className="dashboard-continue-thumb"
+                      />
+                      <span className="dashboard-continue-play" aria-hidden="true">▶</span>
+                    </span>
                   )}
                   <span className="dashboard-continue-copy">
                     <span className="dashboard-continue-label">Continue watching</span>
                     <span className="dashboard-continue-title">{continueLesson.lesson.title}</span>
+                    <span className="dashboard-continue-course">{continueLesson.course.title}</span>
                   </span>
                 </button>
               )}
@@ -341,17 +303,95 @@ export default function Dashboard() {
                   </>
                 ) : (
                   <div className="dashboard-player-placeholder">
-                    <p>Open the sidebar, expand a course under Explore, and pick a lesson.</p>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setSidebarOpen(true)}
-                    >
-                      Browse courses
-                    </button>
+                    <p>Pick a lesson below to start watching.</p>
                   </div>
                 )}
               </div>
+
+              <section className="dashboard-courses-section" aria-labelledby="dashboard-courses-heading">
+                <div className="dashboard-courses-intro">
+                  <p className="dashboard-courses-eyebrow">These are our courses</p>
+                  <h2 id="dashboard-courses-heading" className="dashboard-courses-heading">Explore</h2>
+                  <p className="dashboard-courses-sub">
+                    Tap a course to expand and choose a lesson.
+                  </p>
+                </div>
+
+                <div className="dashboard-course-list">
+                  {courses.map((course) => {
+                    const isExpanded = expandedCourses.includes(course.id)
+                    const { done, total, pct } = courseProgress(course, completed)
+
+                    return (
+                      <article
+                        key={course.id}
+                        className={`dashboard-course-card ${isExpanded ? 'dashboard-course-card--open' : ''}`}
+                      >
+                        <button
+                          type="button"
+                          className="dashboard-course-card-trigger"
+                          aria-expanded={isExpanded}
+                          onClick={() => toggleCourse(course.id)}
+                        >
+                          {course.thumbnail && (
+                            <span className="dashboard-course-card-banner">
+                              <img src={course.thumbnail} alt="" />
+                              <span className="dashboard-course-card-banner-overlay" aria-hidden="true" />
+                            </span>
+                          )}
+                          <span className="dashboard-course-card-body">
+                            <span className="dashboard-course-card-top">
+                              <span className="dashboard-course-card-title">{course.title}</span>
+                              <span className="dashboard-course-card-chevron" aria-hidden="true">
+                                {isExpanded ? '−' : '+'}
+                              </span>
+                            </span>
+                            {course.description && (
+                              <span className="dashboard-course-card-desc">{course.description}</span>
+                            )}
+                            <span className="dashboard-course-card-meta">
+                              {done}/{total} lessons · {course.duration}
+                            </span>
+                            <span className="dashboard-course-card-progress" aria-hidden="true">
+                              <span style={{ width: `${pct}%` }} />
+                            </span>
+                          </span>
+                        </button>
+
+                        {isExpanded && (
+                          <ul className="dashboard-lesson-list">
+                            {course.lessons?.map((lesson, index) => {
+                              const isDone = completed.includes(lesson.id)
+                              const isCurrent = activeLesson?.lesson.id === lesson.id
+
+                              return (
+                                <li key={lesson.id}>
+                                  <button
+                                    type="button"
+                                    className={`dashboard-lesson-btn ${isCurrent ? 'dashboard-lesson-btn--active' : ''}`}
+                                    onClick={() => selectLesson(course, lesson)}
+                                  >
+                                    <span className={`dashboard-lesson-num ${isDone ? 'dashboard-lesson-num--done' : ''}`}>
+                                      {isDone ? '✓' : index + 1}
+                                    </span>
+                                    <span className="dashboard-lesson-copy">
+                                      <span className="dashboard-lesson-title">{lesson.title}</span>
+                                      <span className="dashboard-lesson-duration">{lesson.duration}</span>
+                                    </span>
+                                    {!isDone && (
+                                      <span className="dashboard-lesson-play" aria-hidden="true">▶</span>
+                                    )}
+                                  </button>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        )}
+                      </article>
+                    )
+                  })}
+                </div>
+              </section>
             </>
           )}
         </div>
