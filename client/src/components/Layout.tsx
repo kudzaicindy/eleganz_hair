@@ -43,9 +43,9 @@ export default function Layout() {
   const { user, signOut } = useAuth()
   const isHome = pathname === '/'
   const isAuthPage = pathname === '/login' || pathname === '/register'
-  const isDashboard = pathname === '/dashboard'
-  const showHeader = !isDashboard
-  const showFooter = !isAuthPage && !isDashboard
+  const isMemberArea = pathname === '/dashboard' || pathname === '/courses'
+  const showHeader = !isMemberArea
+  const showFooter = !isAuthPage && !isMemberArea
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -88,7 +88,7 @@ export default function Layout() {
   ].filter(Boolean).join(' ')
 
   return (
-    <div className={`layout ${isHome ? 'layout--home' : ''} ${isAuthPage ? 'layout--auth' : ''} ${isDashboard ? 'layout--dashboard' : ''}`}>
+    <div className={`layout ${isHome ? 'layout--home' : ''} ${isAuthPage ? 'layout--auth' : ''} ${isMemberArea ? 'layout--dashboard' : ''}`}>
       {showHeader && (
       <header className={headerClass}>
         <div className="header-bar">
@@ -113,11 +113,10 @@ export default function Layout() {
                 </li>
                 <li>
                   <NavDropdown
-                    label="Training"
-                    matchPaths={['/packages', '/courses']}
+                    label="Learn"
+                    matchPaths={['/packages']}
                     items={[
                       { to: '/packages', label: 'Packages', description: 'Basic, Premium & Full Access' },
-                      { to: '/courses', label: 'Course Library', description: '50+ wig training videos' },
                     ]}
                   />
                 </li>
@@ -140,7 +139,17 @@ export default function Layout() {
                           `nav-link ${isActive ? 'nav-link--active' : ''}`
                         }
                       >
-                        Training
+                        My Training
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/courses"
+                        className={({ isActive }) =>
+                          `nav-link ${isActive ? 'nav-link--active' : ''}`
+                        }
+                      >
+                        Courses
                       </NavLink>
                     </li>
                     <li>
@@ -220,14 +229,19 @@ export default function Layout() {
               Home
             </NavLink>
             <Link to="/packages" className="nav-mobile-link">Packages</Link>
-            <Link to="/courses" className="nav-mobile-link">Courses</Link>
-            {user && (
+            {user ? (
               <>
                 <NavLink
                   to="/dashboard"
                   className={({ isActive }) => `nav-mobile-link ${isActive ? 'nav-mobile-link--active' : ''}`}
                 >
-                  Training
+                  My Training
+                </NavLink>
+                <NavLink
+                  to="/courses"
+                  className={({ isActive }) => `nav-mobile-link ${isActive ? 'nav-mobile-link--active' : ''}`}
+                >
+                  Courses
                 </NavLink>
                 <NavLink
                   to="/account"
@@ -236,6 +250,8 @@ export default function Layout() {
                   Account
                 </NavLink>
               </>
+            ) : (
+              <Link to="/login" className="nav-mobile-link">Course Library</Link>
             )}
             <div className="nav-mobile-divider" />
 
