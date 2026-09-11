@@ -4,21 +4,9 @@ import { fetchDashboard, markLessonComplete } from '../api/dashboard'
 import VideoPlayer from '../components/VideoPlayer'
 import { useAuth } from '../context/AuthContext'
 import { videos } from '../data/images'
-import type { Course, DashboardData, Lesson, Subscription } from '../types'
+import type { Course, DashboardData, Lesson } from '../types'
+import { subscriptionIsActive } from '../utils/subscription'
 import './Dashboard.css'
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-}
-
-function subscriptionIsActive(sub: Subscription | null) {
-  if (!sub || sub.status !== 'active') return false
-  return new Date(sub.expiresAt) >= new Date()
-}
 
 export default function Dashboard() {
   const { user, token, updateUser } = useAuth()
@@ -27,6 +15,7 @@ export default function Dashboard() {
   const [error, setError] = useState('')
   const [activeLesson, setActiveLesson] = useState<{ course: Course; lesson: Lesson } | null>(null)
   const [completed, setCompleted] = useState<string[]>([])
+  const [expandedCourses, setExpandedCourses] = useState<string[]>([])
 
   useEffect(() => {
     if (!token) return
@@ -41,6 +30,10 @@ export default function Dashboard() {
         setData(dashboard)
         setCompleted(dashboard.completedLessons ?? [])
         updateUser(dashboard.user)
+        const firstCourseId = dashboard.courses?.[0]?.id
+        if (firstCourseId) {
+          setExpandedCourses([firstCourseId])
+        }
       })
       .catch((err: Error) => {
         if (!cancelled) setError(err.message)
@@ -64,6 +57,12 @@ export default function Dashboard() {
     }
   }
 
+  const toggleCourse = (courseId: string) => {
+    setExpandedCourses((prev) =>
+      prev.includes(courseId) ? prev.filter((id) => id !== courseId) : [...prev, courseId],
+    )
+  }
+
   const subscription = data?.subscription ?? user?.subscription ?? null
   const courses = data?.courses ?? []
   const isActive = subscriptionIsActive(subscription)
@@ -76,7 +75,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="dashboard-page dashboard-loading">
-        <p>Loading your dashboard…</p>
+        <p>Loading your training…</p>
       </div>
     )
   }
@@ -94,155 +93,129 @@ export default function Dashboard() {
     <div className="dashboard-page">
       <div className="dashboard-hero">
         <div className="container dashboard-hero-inner">
-          <div>
-            <span className="dashboard-eyebrow">My Dashboard</span>
-            <h1>Welcome back, {user?.name ?? 'Stylist'}</h1>
-            <p>Your subscription, progress, and training library in one place.</p>
+          <div className="dashboard-hero-copy">
+            <span className="dashboard-eyebrow">My Training</span>
+            <h1>Welcome back, {user?.name?.split(' ')[0] ?? 'Stylist'}</h1>
+            {isActive && totalLessons > 0 ? (
+              <div className="dashboard-progress">
+                <div className="dashboard-progress-bar" aria-hidden="true">
+                  <span style={{ width: `${progressPct}%` }} />
+                </div>
+                <p className="dashboard-progress-text">
+                  {progressPct}% complete · {completedCount} of {totalLessons} lessons
+                </p>
+              </div>
+            ) : (
+              <p className="dashboard-hero-lead">Pick up where you left off with your video lessons.</p>
+            )}
           </div>
-          {isActive && totalLessons > 0 && (
-            <div className="dashboard-progress-ring">
-              <strong>{progressPct}%</strong>
-              <span>{completedCount} of {totalLessons} lessons</span>
-            </div>
-          )}
+          <Link to="/account" className="dashboard-account-link">
+            Account &amp; Plan
+          </Link>
         </div>
       </div>
 
       <section className="section dashboard-section">
-        <div className="container dashboard-layout">
-          <aside className="dashboard-sidebar">
-            <div className="dashboard-card card subscription-card">
-              <h2>Your Subscription</h2>
-              {subscription ? (
-                <>
-                  <div className={`subscription-status subscription-status--${subscription.status}`}>
-                    <span className="subscription-plan">{subscription.packageName}</span>
-                    <span className={`badge badge-${isActive ? 'active' : 'expired'}`}>
-                      {isActive ? 'Active' : 'Expired'}
-                    </span>
-                  </div>
-                  <dl className="subscription-details">
-                    <div>
-                      <dt>Monthly price</dt>
-                      <dd>${subscription.price}/month</dd>
-                    </div>
-                    <div>
-                      <dt>{isActive ? 'Renews on' : 'Expired on'}</dt>
-                      <dd>{formatDate(subscription.expiresAt)}</dd>
-                    </div>
-                    <div>
-                      <dt>Courses unlocked</dt>
-                      <dd>{courses.length} course{courses.length !== 1 ? 's' : ''}</dd>
-                    </div>
-                  </dl>
-                  <Link to="/packages" className="btn btn-secondary subscription-action">
-                    {isActive ? 'Manage Plan' : 'Renew Subscription'}
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <p className="subscription-empty">You don&apos;t have an active subscription yet.</p>
-                  <Link to="/packages" className="btn btn-primary subscription-action">Choose a Plan</Link>
-                </>
-              )}
-            </div>
-
-            <div className="dashboard-card card dashboard-help">
-              <h3>Need help?</h3>
-              <p>Contact us on WhatsApp or email for billing and access support.</p>
-            </div>
-          </aside>
-
-          <div className="dashboard-main">
-            <div className="dashboard-main-header">
-              <h2>Your Training Library</h2>
-              {!isActive && (
-                <p className="dashboard-lock-notice">
-                  Renew your subscription to unlock video lessons.
-                </p>
-              )}
-            </div>
-
-            {!isActive ? (
-              <div className="dashboard-empty card">
-                <h3>Subscription inactive</h3>
-                <p>Pick a package to access your wig revamp and customization videos.</p>
+        <div className="container dashboard-content">
+          {!isActive ? (
+            <div className="dashboard-empty card">
+              <h3>Subscription inactive</h3>
+              <p>Renew your plan to unlock wig revamp and customization videos.</p>
+              <div className="dashboard-empty-actions">
                 <Link to="/packages" className="btn btn-primary">View Packages</Link>
+                <Link to="/account" className="btn btn-secondary">Account &amp; Plan</Link>
               </div>
-            ) : courses.length === 0 ? (
-              <div className="dashboard-empty card">
-                <h3>No courses available</h3>
-                <p>Your plan may not include any courses yet. Try upgrading your package.</p>
-                <Link to="/packages" className="btn btn-primary">Upgrade Plan</Link>
-              </div>
-            ) : (
-              <div className="dashboard-courses">
-                {courses.map((course) => (
-                  <article key={course.id} className="dashboard-course card">
-                    <div className="dashboard-course-head">
-                      {course.thumbnail && (
-                        <img src={course.thumbnail} alt="" className="dashboard-course-thumb" />
-                      )}
-                      <div>
-                        <h3>{course.title}</h3>
-                        <p>{course.description}</p>
-                        <div className="dashboard-course-meta">
-                          <span>{course.lessonCount} lessons</span>
-                          <span>{course.duration}</span>
+            </div>
+          ) : courses.length === 0 ? (
+            <div className="dashboard-empty card">
+              <h3>No courses available</h3>
+              <p>Your plan may not include any courses yet. Try upgrading your package.</p>
+              <Link to="/packages" className="btn btn-primary">Upgrade Plan</Link>
+            </div>
+          ) : (
+            <div className="dashboard-courses">
+              {courses.map((course) => {
+                const isExpanded = expandedCourses.includes(course.id)
+                const courseCompleted = course.lessons?.filter((l) => completed.includes(l.id)).length ?? 0
+                const courseTotal = course.lessons?.length ?? 0
+
+                return (
+                  <article key={course.id} className={`dashboard-course card ${isExpanded ? 'dashboard-course--open' : ''}`}>
+                    <button
+                      type="button"
+                      className="dashboard-course-toggle"
+                      aria-expanded={isExpanded}
+                      onClick={() => toggleCourse(course.id)}
+                    >
+                      <div className="dashboard-course-summary">
+                        {course.thumbnail && (
+                          <img src={course.thumbnail} alt="" className="dashboard-course-thumb" />
+                        )}
+                        <div className="dashboard-course-intro">
+                          <h3>{course.title}</h3>
+                          <p>{course.description}</p>
+                          <div className="dashboard-course-meta">
+                            <span>{courseCompleted}/{courseTotal} done</span>
+                            <span>{course.duration}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                      <span className="dashboard-course-chevron" aria-hidden="true">{isExpanded ? '−' : '+'}</span>
+                    </button>
 
-                    <ul className="lesson-list">
-                      {course.lessons?.map((lesson) => {
-                        const isDone = completed.includes(lesson.id)
-                        const isPlaying = activeLesson?.lesson.id === lesson.id
+                    {isExpanded && (
+                      <ul className="lesson-list">
+                        {course.lessons?.map((lesson) => {
+                          const isDone = completed.includes(lesson.id)
+                          const isPlaying = activeLesson?.lesson.id === lesson.id
 
-                        return (
-                          <li key={lesson.id} className={`lesson-item ${isPlaying ? 'lesson-item--active' : ''}`}>
-                            <button
-                              type="button"
-                              className="lesson-row"
-                              onClick={() => setActiveLesson({ course, lesson })}
-                            >
-                              <span className={`lesson-play ${isDone ? 'lesson-play--done' : ''}`}>
-                                {isDone ? '✓' : '▶'}
-                              </span>
-                              <span className="lesson-info">
-                                <span className="lesson-title">{lesson.title}</span>
-                                <span className="lesson-duration">{lesson.duration}</span>
-                              </span>
-                            </button>
+                          return (
+                            <li key={lesson.id} className={`lesson-item ${isPlaying ? 'lesson-item--active' : ''}`}>
+                              <button
+                                type="button"
+                                className="lesson-row"
+                                onClick={() => setActiveLesson({ course, lesson })}
+                              >
+                                <span className={`lesson-play ${isDone ? 'lesson-play--done' : ''}`}>
+                                  {isDone ? '✓' : '▶'}
+                                </span>
+                                <span className="lesson-info">
+                                  <span className="lesson-title">{lesson.title}</span>
+                                  <span className="lesson-duration">{lesson.duration}</span>
+                                </span>
+                              </button>
 
-                            {isPlaying && (
-                              <div className="lesson-player">
-                                <div className="lesson-player-screen">
-                                  <VideoPlayer
-                                    src={lesson.videoUrl ?? videos.revamp}
-                                    title={lesson.title}
-                                    className="lesson-video"
-                                  />
+                              {isPlaying && (
+                                <div className="lesson-player">
+                                  <div className="lesson-player-screen">
+                                    <VideoPlayer
+                                      src={lesson.videoUrl ?? videos.revamp}
+                                      title={lesson.title}
+                                      className="lesson-video"
+                                    />
+                                  </div>
+                                  <div className="lesson-player-actions">
+                                    <button
+                                      type="button"
+                                      className="btn btn-primary"
+                                      onClick={() => markComplete(lesson.id)}
+                                      disabled={isDone}
+                                    >
+                                      {isDone ? 'Completed' : 'Mark as Complete'}
+                                    </button>
+                                  </div>
                                 </div>
-                                <div className="lesson-player-actions">
-                                  <button
-                                    type="button"
-                                    className="btn btn-primary"
-                                    onClick={() => markComplete(lesson.id)}
-                                  >
-                                    Mark as Complete
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </li>
-                        )
-                      })}
-                    </ul>
+                              )}
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
                   </article>
-                ))}
-              </div>
-            )}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </section>
     </div>

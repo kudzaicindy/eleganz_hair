@@ -33,12 +33,14 @@ html {
     overflow: visible;
   }
 
-  .dashboard-page {
+  .dashboard-page,
+  .account-page {
     overflow-x: clip;
     max-width: 100%;
   }
 
-  .dashboard-page .container {
+  .dashboard-page .container,
+  .account-page .container {
     max-width: 100%;
   }
 }

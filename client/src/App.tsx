@@ -6,6 +6,7 @@ import Packages from './pages/Packages'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import Account from './pages/Account'
 import Courses from './pages/Courses'
 import Admin from './pages/Admin'
 
@@ -22,6 +23,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="account"
+          element={
+            <ProtectedRoute>
+              <Account />
             </ProtectedRoute>
           }
         />
