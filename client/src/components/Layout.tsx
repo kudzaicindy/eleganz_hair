@@ -4,8 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import NavDropdown from './NavDropdown'
 import {
   ChevronDownIcon,
+  ClockIcon,
   FacebookIcon,
   InstagramIcon,
+  LocationIcon,
   WhatsAppIcon,
 } from './icons/SocialIcons'
 import './Layout.css'
@@ -304,14 +306,18 @@ export default function Layout() {
                 <h4 className="footer-heading">Get in Touch</h4>
                 <ul className="footer-contact">
                   <li>
-                    <span className="footer-icon" aria-hidden="true">◎</span>
+                    <span className="footer-icon" aria-hidden="true">
+                      <LocationIcon />
+                    </span>
                     <div>
                       <span className="footer-contact-label">Location</span>
                       <span>Harare, Zimbabwe</span>
                     </div>
                   </li>
                   <li>
-                    <span className="footer-icon" aria-hidden="true">◷</span>
+                    <span className="footer-icon" aria-hidden="true">
+                      <ClockIcon />
+                    </span>
                     <div>
                       <span className="footer-contact-label">Hours</span>
                       <span>Mon – Sat · 9AM – 6PM</span>

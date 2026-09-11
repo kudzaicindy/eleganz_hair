@@ -423,7 +423,7 @@
   justify-content: center;
 }
 
-/* Shared social icon buttons */
+/* Shared social icon buttons (footer / dark surfaces) */
 .social-link {
   width: 40px;
   height: 40px;
@@ -431,9 +431,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  color: var(--cream-300);
-  background: rgba(253, 251, 247, 0.08);
-  border: 1px solid rgba(253, 251, 247, 0.14);
+  color: var(--cream-50);
+  background: rgba(253, 251, 247, 0.12);
+  border: 1px solid rgba(253, 251, 247, 0.22);
   transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
 }
 
@@ -447,6 +447,21 @@
   border-color: var(--cream-500);
   color: var(--mocha-dark);
   transform: translateY(-2px);
+}
+
+/* Mobile menu — light panel needs dark, readable icons */
+.nav-mobile-social .social-link {
+  color: var(--cream-800);
+  background: var(--white);
+  border: 1px solid var(--cream-400);
+  box-shadow: 0 2px 8px rgba(74, 61, 46, 0.08);
+}
+
+.nav-mobile-social .social-link:hover {
+  background: var(--cream-800);
+  border-color: var(--cream-800);
+  color: var(--cream-50);
+  transform: translateY(-1px);
 }
 
 .nav-mobile-cta {
@@ -603,11 +618,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(253, 251, 247, 0.08);
-  border: 1px solid rgba(253, 251, 247, 0.12);
+  background: rgba(253, 251, 247, 0.1);
+  border: 1px solid rgba(253, 251, 247, 0.16);
   border-radius: 8px;
-  font-size: 0.85rem;
-  color: var(--cream-400);
+  color: var(--cream-200);
+}
+
+.footer-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .footer-contact-label {
